@@ -2,6 +2,8 @@
 
 A Clojure library designed to impliment the functionality of the dotenv RubyGem on the JVM
 
+## NOTE!!! This is work in progress and is not functional yet!!!
+
 ## Usage
 
 Add your application configuration to your .env file in the root of your project:

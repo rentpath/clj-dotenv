@@ -1,7 +1,8 @@
-# dotenv.core
+# dotenv
 
-A Clojure library designed to impliment the functionality of the dotenv RubyGem on the JVM.
+#### A Clojure library designed to impliment the functionality of the dotenv RubyGem on the JVM.
 
+Read a file of environment key=value pairs and load them into the JVM's System Properties.
 
 ## Usage
 
@@ -13,9 +14,11 @@ In your application ns macro
 
     (:require [dotenv.core :as dotenv])
 
-In you application program
+In your application program (the environment variable file name defaults to ".env").
 
-    (dotenv/load-env)  ;; Filename defaults to ".env"
+    (dotenv/load-env)
+
+or specify a filename
 
     (dotenv/load-env ".env.test")
 

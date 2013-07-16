@@ -17,7 +17,7 @@
       (doseq [line (with-open [file (io/reader env-file)]
         (doall (line-seq file)))]
           (if (not (string/blank? line))
-            (let [l (string/trim line)]
-              (let [v (string/split l #"(\s*=\s*)|(:[^/])")]
-                (= (count v) 2 (System/setProperty (str (nth v 0)) (str (nth v 1))))))))))
+            (let [l (string/replace (string/trim line) #"(^export\s+)|(^setenv\s+)" "")]
+              (let [v (string/split l #"(\s*=\s*)|(:[^/])|(\s+)")]
+                (= (count v) 2 (System/setProperty (str (nth v 0)) (string/replace (nth v 1) #"\'" "\"")))))))))
 

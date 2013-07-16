@@ -1,4 +1,4 @@
-(defproject dotenv "0.1.0"
+(defproject org.clojars.jackmorrill/dotenv "0.1.0"
   :description "dotenv: Load environment variables from .env file into the JVM System Properties"
   :url "https://github.com/jackmorrill/dotenv"
   :license {:name "Eclipse Public License"

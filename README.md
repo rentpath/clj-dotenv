@@ -1,11 +1,26 @@
 # dotenv.core
 
-A Clojure library designed to impliment the functionality of the dotenv RubyGem on the JVM
+A Clojure library designed to impliment the functionality of the dotenv RubyGem on the JVM.
 
 
 ## Usage
 
-Add your application configuration to your .env file in the root of your project:
+In project.clj :dependencies
+
+    [org.clojars.jackmorrill/dotenv "0.1.0"]
+
+In your application ns macro
+
+    (:require [dotenv.core :as dotenv])
+
+In you application program
+
+    (dotenv/load-env)  ;; Filename defaults to ".env"
+
+    (dotenv/load-env ".env.test")
+
+
+Add your application configuration to your .env file in the root of your project.
 
     S3_BUCKET=YOURS3BUCKET
     SECRET_KEY = "YOURSECRETKEYGOESHERE"
@@ -20,20 +35,14 @@ An alternate yaml-like syntax is supported:
     S3_BUCKET: yamlstyleforyours3bucket
     SECRET_KEY: thisisalsoanokaysecret
 
-Your application only needs to call dotenv.core/load-env once:
-
-    (:require [dotenv.core :as dotenv])
-
-    (dotenv/load-env)  ;; Filename defaults to ".env"
-
-    (dotenv/load-env ".env.test")
+Your application only needs to call dotenv.core/load-env once
 
     
-Whenever your application loads, these variables will be available in the JVM System Properties:
+Whenever your application loads, these variables will be available in the JVM System Properties.
 
     (System/getProperty "S3_BUCKET")
 
-The dotenv library is intended to be used with the environs.core library:
+The dotenv library is intended to be used with the [org.clojars.jackmorrill/environs "0.1.0"] library.
 
     (:require [environs.core :as environs])
 

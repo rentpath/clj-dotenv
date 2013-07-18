@@ -50,10 +50,3 @@ The dotenv library is intended to be used with the [org.clojars.jackmorrill/envi
     (:require [environs.core :as environs])
 
     (environs/get-env "S3_BUCKET")
-
-
-## License
-
-Copyright (c) 2013 by Jack Morrill. All rights reserved. 
-
-Distributed under the Eclipse Public License 1.0 (http://opensource.org/licenses/eclipse-1.0.php).

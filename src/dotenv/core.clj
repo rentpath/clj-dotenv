@@ -3,22 +3,45 @@
       dotenv.core
       (:require [clojure.java.io :as io      ]
                 [clojure.string  :as string  ]
-                [environs.core   :as environs]))
+                [environs.core   :as environs]
+                [me.raynes.fs    :as fs      ]))
+
+(def ^{:doc "An environment variable that specifies which environment we're running in."}
+  +dot-env-var+
+  "RP_ENV")
+
+(def +env-config-files+
+  {"ci"          ".ci"
+   "development" ".dev"
+   "production"  ".prod"
+   "qa"          ".qa"
+   "stage"       ".stage"})
 
 (defn exists?
   "Returns true if file exists and is a regular file, else returns false."
   [filename]
   (.isFile (io/file filename)))
 
+(defn- get-env
+  [varname]
+  (get (System/getenv) varname))
+
+(defn make-filename
+  ([directory]
+     (let [env (get-env +dot-env-var+)]
+       (->> (str ".env" (.toLowerCase (get +env-config-files+ env "")))
+            (vector directory)
+            (string/join (System/getProperty "file.separator"))
+            (fs/expand-home))))
+  ([]
+     (make-filename (System/getenv "PWD"))))
+
+(defn set-property!
+  [k v]
+  (System/setProperty k v))
+
 (defn load-env
-
-  "Load environment variable definitions from .env{.<environment>} into the JVM System Properties
-
-  TODO:
-
-  Currently dotenv reads .env if a file name is not passed to the function.  We need the concept
-  of an environment, like Rails.env or RACK_ENV for Sinatra.  The dotenv function should lookup
-  the file .env.<environment>, and if that is not found, fall back to .env
+  "Load environment variable definitions from .env{.<environment>} into a map
 
   .env(.*) file format:
 
@@ -36,14 +59,17 @@
     export bar='hairy URL'
 
   "
-
-  [& {:keys [env-file]
-      :or {env-file ".env"}}]
-  (if (exists? env-file)
-    (doseq [line (with-open [file (io/reader env-file)]
-      (doall (line-seq file)))]
-        (let [l (string/trim (string/replace line #"(^export\s+)|([#].*)" ""))]
-          (if (or (not (string/blank? l)) (> (count l) 0))
-            (let [v (string/split (string/replace l #"['\"]" "") #"(\s*=\s*)|(:\s+)")]
-              (= (count v) 2 (System/setProperty (str (v 0)) (v 1)))))))))
+  ([]
+     (load-env (make-filename)))
+  ([config-filename]
+     (if (exists? config-filename)
+       (with-open [file (io/reader config-filename)]
+         (->> (line-seq file)
+              (map #(string/replace % #"(^export\s+)|([#].*)" ""))
+              (map string/trim)
+              (remove string/blank?)
+              (map #(string/replace % #"['\"]" ""))
+              (map #(string/split % #"(\s*=\s*)|(:\s+)"))
+              (into {})))
+       (throw (Error. (format "Could not load configuration file: %s" config-filename))))))
 

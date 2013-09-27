@@ -1,9 +1,9 @@
-(ns ^{:author "Jack Morrill for RentPath.com"
-      :doc "Load environment variable definitions from .env into the JVM System Properties."}
+(ns ^{:author "Jack Morrill, RentPath.com"
+      :doc "Load environment variable definitions from .env<.environment> file into the JVM System Properties."}
       dotenv.core
-      (:require [clojure.java.io :as io]
-                [clojure.string :as string]
-                [environs.core  :as environs]))
+      (:require [clojure.java.io :as io      ]
+                [clojure.string  :as string  ]
+                [environs.core   :as environs]))
 
 (defn exists?
   "Returns true if file exists and is a regular file, else returns false."
@@ -25,12 +25,12 @@
     foo=1
     bar='hairy URL'
 
-    YAML-like format:
+  YAML-like format:
 
     foo: 1
     bar: 'hairy URL'
 
-    For convienence, a Bourne Shell format is accepted:
+  For convienence, a Bourne Shell format is accepted:
 
     export foo=1
     export bar='hairy URL'

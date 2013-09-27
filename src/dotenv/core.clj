@@ -38,7 +38,8 @@
 
 (defn set-property!
   [k v]
-  (System/setProperty k v))
+  (when (and k v)
+    (System/setProperty k v)))
 
 (defn load-env
   "Load environment variable definitions from .env{.<environment>} into a map
@@ -72,4 +73,3 @@
               (map #(string/split % #"(\s*=\s*)|(:\s+)"))
               (into {})))
        (throw (Error. (format "Could not load configuration file: %s" config-filename))))))
-

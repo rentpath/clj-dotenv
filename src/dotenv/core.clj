@@ -12,8 +12,10 @@
 
 (def +env-config-files+
   {"ci"          ".ci"
-   "development" ".dev"
-   "production"  ".prod"
+   "development" ".development"
+   "test"        ".test"
+   "acceptance"  ".acceptance"
+   "production"  ".production"
    "qa"          ".qa"
    "stage"       ".stage"})
 

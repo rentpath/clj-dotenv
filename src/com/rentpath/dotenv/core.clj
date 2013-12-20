@@ -1,14 +1,14 @@
 (ns ^{:author "Jack Morrill, RentPath.com"
       :doc "Load environment variable definitions from .env<.environment> file into the JVM System Properties."}
-      dotenv.core
+      com.rentpath.dotenv.core
       (:require [clojure.java.io :as io      ]
                 [clojure.string  :as string  ]
-                [environs.core   :as environs]
+                [com.rentpath.environs.core   :as environs]
                 [me.raynes.fs    :as fs      ]))
 
 (def ^{:doc "An environment variable that specifies which environment we're running in."}
   +dot-env-var+
-  "RP_ENV")
+  "ENVIRONMENT")
 
 (def +env-config-files+
   {"ci"          ".ci"

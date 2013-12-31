@@ -1,5 +1,9 @@
-(ns ^{:author "Jack Morrill, RentPath.com"
-      :doc "Load environment variable definitions from .env<.environment> file into the JVM System Properties."}
+;; src/dotenv/core.clj
+
+;; Clojure implimentation of the doteng Ruby Gem.
+
+(ns ^{:author "Jack Morrill"
+      :doc "Load environment variable definitions from .env<.environment>, .env.local files into the JVM System Properties."}
       dotenv.core
       (:require [clojure.java.io :as io      ]
                 [clojure.string  :as string  ]
@@ -8,7 +12,7 @@
 
 (def ^{:doc "An environment variable that specifies which environment we're running in."}
   +dot-env-var+
-  "RP_ENV")
+  "ENVIRONMENT")
 
 (def +env-config-files+
   {"ci"          ".ci"
@@ -44,24 +48,7 @@
     (System/setProperty k v)))
 
 (defn load-env
-  "Load environment variable definitions from .env{.<environment>} into a map
-
-  .env(.*) file format:
-
-    foo=1
-    bar='hairy URL'
-
-  YAML-like format:
-
-    foo: 1
-    bar: 'hairy URL'
-
-  For convienence, a Bourne Shell format is accepted:
-
-    export foo=1
-    export bar='hairy URL'
-
-  "
+  "Load environment variable definitions from .env{.ENVIRONMENT} into a map."
   ([]
      (load-env (make-filename)))
   ([config-filename]
@@ -75,3 +62,31 @@
               (map #(string/split % #"(\s*=\s*)|(:\s+)"))
               (into {})))
        (throw (Error. (format "Could not load configuration file: %s" config-filename))))))
+
+(defn dotenv!
+  "Create JVM System Properties from environment variables defined in .env{.ENVIRONMENT}.
+   If .env.local exists, load those JVM System Properties too, overriding definitions from .env{.environment}.
+
+  .env.* file format:
+
+    foo=1
+    bar='hairy URL'
+
+  YAML-like format:
+
+    foo: 1
+    bar: 'hairy URL'
+
+  For convienence, a BASH Shell format is accepted:
+
+    export foo=1
+    export bar='gnarley URL'
+
+  Blank lines and all characters after a comment character (#) in all lines are ignored.  
+  "
+  []
+  (let [environ (load-env)]
+    (doseq [[k v] environ] (set-property! k v)))
+    (if (exists? ".env.local")
+      (let [environ-local (load-env ".env.local")]
+        (doseq [[k v] environ-local] (set-property! k v)))))

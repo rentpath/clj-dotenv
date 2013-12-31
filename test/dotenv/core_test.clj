@@ -1,3 +1,10 @@
+;; core_test.clj
+
+;; Run with "env EVNIRONMENT=test lein test"
+
+;; A .env.test file and a .env.local file must be present.
+
+
 (ns dotenv.core-test
   (:require [clojure.test :refer :all]
             [dotenv.core :as dotenv :refer :all]
@@ -8,11 +15,10 @@
   (let [environ (load-env)
         previous-environ (zipmap (keys environ) (map #(System/getProperty %) (keys environ)))]
     ;; setup environ
-    (doseq [[k v] environ] (set-property! k v))
+    (dotenv!)
     (f)
     ;; reset environ
-    (doseq [[k v] previous-environ] (set-property! k v))))
-
+        (doseq [[k v] previous-environ] (set-property! k v))))
 (use-fixtures :each environ-fixture)
 
 (deftest test-10

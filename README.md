@@ -43,7 +43,7 @@ An alternate yaml-like syntax is supported:
     S3_BUCKET: yamlstyleforyours3bucket
     SECRET_KEY: this-is-also-an-okay-secret
 
-Your application only needs to call (dotenv!) once, preferably early in startup.
+Your application only needs to call (dotenv!) once, preferably as early as possible in the application startup.
     
 When your application loads, the variables defined in the .env{.*} files will be available in the JVM System Properties.
 

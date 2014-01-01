@@ -16,4 +16,5 @@ pom.xml.asc
 .ruby-version
 .rbenv-gemsets
 .vagrant
+install_dotenv.sh
 

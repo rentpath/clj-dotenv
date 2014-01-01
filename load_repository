@@ -1,0 +1,41 @@
+#!/bin/bash
+
+PROJECT=dotenv
+VERSION=1.0.1
+
+#==============================================================================
+DOMAIN="com.rentpath"
+DOMAIN_PATH="com/rentpath"
+CMD="install_${PROJECT}.sh"
+ARTIFACT="${PROJECT}-${VERSION}.jar"
+ARTIFACT_PATH="`pwd`/target/${ARTIFACT}"
+REMOTE_HOST="ec2-54-224-24-95.compute-1.amazonaws.com"
+
+if [[ ($1 == "-h") || ($1 == "--help") ]]
+then
+  echo ""
+  echo "Load $ARTIFACT into your local Maven repository ~/.m2/$DOMAIN_PATH/$PROJECT/$ARTIFACT"
+  echo ""
+  echo "Usage: load_repository <options>"
+  echo ""
+  echo "Options:"
+  echo "  -r | --remote  # Load $ARTIFACT file into the remote repository on $REMOTE_HOST:/public/maven/.m2/$DOMAIN_PATH/$PROJECT/$ARTIFACT"
+  echo ""
+  exit 0
+fi
+
+if [[ ($1 != "-r") && ($1 != "--remote") ]]
+then
+  echo "Installing $ARTIFACT into local Maven repository ..."
+  #mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT_PATH -DgeneratePom=true -DcreateChecksum=true
+else
+  echo "Installing $ARTIFACT into remote Maven repository on IWS-PAIR ..."
+  tee << EOF > $CMD
+mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT -DgeneratePom=true -DcreateChecksum=true
+EOF
+  scp -p $CMD $REMOTE_HOST:/public/maven
+  ssh ${REMOTE_HOST} "chmod 775 /public/maven/$CMD ; chgrp wheel /public/maven/$CMD"
+  scp $ARTIFACT_PATH $REMOTE_HOST:/public/maven
+  ssh ${REMOTE_HOST} "chmod 775 /public/maven/$ARTIFACT ; chgrp wheel /public/maven/$ARTIFACT"
+  ssh $REMOTE_HOST "cd /public/maven ; ./$CMD ; rm $ARTIFACT $CMD"
+fi

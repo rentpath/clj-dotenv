@@ -3,11 +3,11 @@
 ;; Clojure implimentation of the doteng Ruby Gem.
 
 (ns ^{:author "Jack Morrill"
-      :doc "Load environment variable definitions from .env<.environment>, .env.local files into the JVM System Properties."}
-      dotenv.core
+      :doc "Load environment variable definitions from .env{.environment}, .env.local files into the JVM System Properties."}
+      com.rentpath.dotenv.core
       (:require [clojure.java.io :as io      ]
                 [clojure.string  :as string  ]
-                [environs.core   :as environs]
+                [com.rentpath.environs.core :as environs :refer :all]
                 [me.raynes.fs    :as fs      ]))
 
 (def ^{:doc "An environment variable that specifies which environment we're running in."}

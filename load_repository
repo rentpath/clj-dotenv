@@ -24,10 +24,12 @@ then
   exit 0
 fi
 
+lein uberjar
+
 if [[ ($1 != "-r") && ($1 != "--remote") ]]
 then
   echo "Installing $ARTIFACT into local Maven repository ..."
-  #mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT_PATH -DgeneratePom=true -DcreateChecksum=true
+  mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT_PATH -DgeneratePom=true -DcreateChecksum=true
 else
   echo "Installing $ARTIFACT into remote Maven repository on IWS-PAIR ..."
   tee << EOF > $CMD

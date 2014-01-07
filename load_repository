@@ -1,4 +1,5 @@
 #!/bin/bash
+#set -x
 
 PROJECT=`grep defproject project.clj | awk '{print $2}'`
 v=`grep defproject project.clj | awk '{print $3}'`
@@ -12,7 +13,7 @@ ARTIFACT="${PROJECT}-${VERSION}.jar"
 ARTIFACT_PATH="`pwd`/target/${ARTIFACT}"
 REMOTE_HOST="ec2-54-224-24-95.compute-1.amazonaws.com"
 
-if [[ ($1 == "-h") || ($1 == "--help") || ($1 == "") ]]
+if [[ ("$1" == "-h") || ("$1" == "--help") || ($1 == "") ]]
 then
   echo ""
   echo "Load $ARTIFACT into a local or remote Maven repository."
@@ -29,13 +30,14 @@ fi
 
 lein uberjar
 
-if [[ ($1 == "-l") && ($1 == "--local") ]]
+if [[ ("$1" == "-l") || ("$1" = "--local") ]]
 then
   echo "Installing $ARTIFACT into local Maven repository ..."
   mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT_PATH -DgeneratePom=true -DcreateChecksum=true
 fi
 
-if [[ ($1 == "-r") && ($1 == "--remote") ]]
+if [[ ($1 == "-r") || ($1 == "--remote") ]]
+then
   echo "Installing $ARTIFACT into remote Maven repository ..."
   tee << EOF > $CMD
 mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT -DgeneratePom=true -DcreateChecksum=true

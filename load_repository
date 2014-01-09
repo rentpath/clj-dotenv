@@ -23,8 +23,8 @@ then
   echo ""
   echo "Options:"
   echo ""
-  echo "  -l, --local   # Load $ARTIFACT file into local Maven repository ~/m2/repository/$DOMAIN_PATH/$ARTIFACT"
-  echo "  -r, --remote  # Load $ARTIFACT file into the remote repository on $REMOTE_HOST:/public/maven/.m2/$DOMAIN_PATH/$PROJECT/$ARTIFACT"
+  echo "  -l, --local   # Load $ARTIFACT and $ARTIFACT_STANDALONE files into local Maven repository ~/m2/repository/$DOMAIN_PATH/$ARTIFACT"
+  echo "  -r, --remote  # Load $ARTIFACT and $ARTIFACT_STANDALONE files into the remote repository on $REMOTE_HOST:/public/maven/.m2/$DOMAIN_PATH/$PROJECT/$ARTIFACT"
   echo ""
   exit 0
 fi
@@ -34,21 +34,24 @@ lein uberjar
 if [[ ("$1" == "-l") || ("$1" = "--local") ]]
 then
   echo "Installing $ARTIFACT into local Maven repository ..."
-  mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT_PATH/$ARTIFACT_STANDALONE -DgeneratePom=true -DcreateChecksum=true
   mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT_PATH/$ARTIFACT -DgeneratePom=true -DcreateChecksum=true
+  mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT_PATH/$ARTIFACT_STANDALONE -DgeneratePom=true -DcreateChecksum=true
 fi
 
 if [[ ($1 == "-r") || ($1 == "--remote") ]]
 then
   echo "Installing $ARTIFACT into remote Maven repository ..."
   tee << EOF > $CMD
-mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT_PATH/$ARTIFACT_STANDALONE -DgeneratePom=true -DcreateChecksum=true
-mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT_PATH/$ARTIFACT -DgeneratePom=true -DcreateChecksum=true
+mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT -DgeneratePom=true -DcreateChecksum=true
+mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT_STANDALONE -DgeneratePom=true -DcreateChecksum=true
 EOF
+  cat $CMD
   scp -p $CMD $REMOTE_HOST:/public/maven
   ssh ${REMOTE_HOST} "chmod 775 /public/maven/$CMD ; chgrp wheel /public/maven/$CMD"
-  scp $ARTIFACT_PATH $REMOTE_HOST:/public/maven
-  ssh ${REMOTE_HOST} "chmod 775 /public/maven/$ARTIFACT ; chgrp wheel /public/maven/$ARTIFACT"
-  ssh $REMOTE_HOST "cd /public/maven ; ./$CMD ; rm $ARTIFACT $CMD"
+  scp $ARTIFACT_PATH/$ARTIFACT             $REMOTE_HOST:/public/maven/
+  scp $ARTIFACT_PATH/$ARTIFACT_STANDALONE  $REMOTE_HOST:/public/maven/
+  ssh ${REMOTE_HOST} "chmod 775 /public/maven/$ARTIFACT ;            chgrp wheel /public/maven/$ARTIFACT"
+  ssh ${REMOTE_HOST} "chmod 775 /public/maven/$ARTIFACT_STANDALONE ; chgrp wheel /public/maven/$ARTIFACT_STANDALONE"
+  ssh $REMOTE_HOST "cd /public/maven ; ./$CMD ; rm $ARTIFACT $ARTIFACT_STANDALONE $CMD"
   rm $CMD
 fi

@@ -53,15 +53,17 @@
      (load-env (make-filename)))
   ([config-filename]
      (if (exists? config-filename)
-       (with-open [file (io/reader config-filename)]
-         (->> (line-seq file)
-              (map #(string/replace % #"(^export\s+)|([#].*)" ""))
-              (map string/trim)
-              (remove string/blank?)
-              (map #(string/replace % #"['\"]" ""))
-              (map #(string/split % #"(\s*=\s*)|(:\s+)"))
-              (into {})))
-       (throw (Error. (format "Could not load configuration file: %s" config-filename))))))
+       (try (with-open [file (io/reader config-filename)]
+              (->> (line-seq file)
+                   (map #(string/replace % #"(^export\s+)|([#].*)" ""))
+                   (map string/trim)
+                   (remove string/blank?)
+                   (map #(string/replace % #"['\"]" ""))
+                   (map #(string/split % #"(\s*=\s*)|(:\s+)"))
+                   (into {})))
+            (catch java.lang.Throwable e
+              (.printStackTrace e)
+              (throw (Error. (format "Could not load configuration file: %s" config-filename))))))))
 
 (defn dotenv!
   "Create JVM System Properties from environment variables defined in .env{.ENVIRONMENT}.

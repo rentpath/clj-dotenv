@@ -10,7 +10,8 @@ DOMAIN="com.rentpath"
 DOMAIN_PATH=${DOMAIN//./\/} 
 CMD="install_${PROJECT}.sh"
 ARTIFACT="${PROJECT}-${VERSION}.jar"
-ARTIFACT_PATH="`pwd`/target/${ARTIFACT}"
+ARTIFACT_STANDALONE="${PROJECT}-${VERSION}-standalone.jar"
+ARTIFACT_PATH="`pwd`/target"
 REMOTE_HOST="ec2-54-224-24-95.compute-1.amazonaws.com"
 
 if [[ ("$1" == "-h") || ("$1" == "--help") || ($1 == "") ]]
@@ -33,14 +34,16 @@ lein uberjar
 if [[ ("$1" == "-l") || ("$1" = "--local") ]]
 then
   echo "Installing $ARTIFACT into local Maven repository ..."
-  mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT_PATH -DgeneratePom=true -DcreateChecksum=true
+  mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT_PATH/$ARTIFACT_STANDALONE -DgeneratePom=true -DcreateChecksum=true
+  mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT_PATH/$ARTIFACT -DgeneratePom=true -DcreateChecksum=true
 fi
 
 if [[ ($1 == "-r") || ($1 == "--remote") ]]
 then
   echo "Installing $ARTIFACT into remote Maven repository ..."
   tee << EOF > $CMD
-mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT -DgeneratePom=true -DcreateChecksum=true
+mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT_PATH/$ARTIFACT_STANDALONE -DgeneratePom=true -DcreateChecksum=true
+mvn install:install-file -DgroupId=$DOMAIN -DartifactId=$PROJECT -Dversion=$VERSION -Dpackaging=jar -Dfile=$ARTIFACT_PATH/$ARTIFACT -DgeneratePom=true -DcreateChecksum=true
 EOF
   scp -p $CMD $REMOTE_HOST:/public/maven
   ssh ${REMOTE_HOST} "chmod 775 /public/maven/$CMD ; chgrp wheel /public/maven/$CMD"

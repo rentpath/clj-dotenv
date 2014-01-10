@@ -34,13 +34,13 @@
 
 (defn make-filename
   ([directory]
-     (let [env (get-env +dot-env-var+)]
-       (->> (str ".env" (.toLowerCase (get +env-config-files+ env "")))
-            (vector directory)
-            (string/join (System/getProperty "file.separator"))
-            (fs/expand-home))))
+   (let [env (get-env +dot-env-var+)]
+     (->> (str ".env" (.toLowerCase (get +env-config-files+ env "")))
+          (vector directory)
+          (string/join (System/getProperty "file.separator"))
+          (fs/expand-home))))
   ([]
-     (make-filename (System/getenv "PWD"))))
+   (make-filename (System/getenv "PWD"))))
 
 (defn set-property!
   [k v]
@@ -50,21 +50,22 @@
 (defn load-env
   "Load environment variable definitions from .env{.ENVIRONMENT} into a map."
   ([]
-     (load-env (make-filename)))
+   (load-env (make-filename)))
   ([config-filename]
-     (if (exists? config-filename)
-       (with-open [file (io/reader config-filename)]
-         (->> (line-seq file)
-              (map #(string/replace % #"(^export\s+)|([#].*)" ""))
-              (map string/trim)
-              (remove string/blank?)
-              (map #(string/replace % #"['\"]" ""))
-              (map #(string/split % #"(\s*=\s*)|(:\s+)"))
-              (into {})))
-       (throw (Error. (format "Could not load configuration file: %s" config-filename))))))
+   (if (exists? config-filename)
+     (with-open [file (io/reader config-filename)]
+       (->> (line-seq file)
+            (map #(string/replace % #"(^export\s+)|([#].*)" ""))
+            (map string/trim)
+            (remove string/blank?)
+            (map #(string/replace % #"['\"]" ""))
+            (map #(string/split % #"(\s*=\s*)|(:\s+)"))
+            (into {})))
+     (throw (Error. (format "Could not load configuration file: %s" config-filename))))))
 
-(defn dotenv!
-  "Create JVM System Properties from environment variables defined in .env{.ENVIRONMENT}.
+(let [+env-local+ ".env.local"]
+  (defn dotenv!
+    "Create JVM System Properties from environment variables defined in .env{.ENVIRONMENT}.
    If .env.local exists, load those JVM System Properties too, overriding definitions from .env{.environment}.
 
   .env.* file format:

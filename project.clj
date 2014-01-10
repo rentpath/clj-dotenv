@@ -1,4 +1,4 @@
-(defproject dotenv "1.0.2"
+(defproject dotenv "1.0.3"
   :description "dotenv: Load environment variables from .env file into JVM System Properties"
   :url "https://github.com/primedia/clj-dotenv"
   :license {:name "MIT License (MIT)"

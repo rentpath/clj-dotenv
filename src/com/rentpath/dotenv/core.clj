@@ -53,47 +53,49 @@
    (load-env (make-filename)))
   ([config-filename]
    (if (exists? config-filename)
-     (with-open [file (io/reader config-filename)]
-       (->> (line-seq file)
-            (map #(string/replace % #"(^export\s+)|([#].*)" ""))
-            (map string/trim)
-            (remove string/blank?)
-            (map #(string/replace % #"['\"]" ""))
-            (map #(string/split % #"(\s*=\s*)|(:\s+)"))
-            (into {})))
-     (throw (Error. (format "Could not load configuration file: %s" config-filename))))))
+     (try (with-open [file (io/reader config-filename)]
+            (->> (line-seq file)
+                 (map #(string/replace % #"(^export\s+)|([#].*)" ""))
+                 (map string/trim)
+                 (remove string/blank?)
+                 (map #(string/replace % #"['\"]" ""))
+                 (map #(string/split % #"(\s*=\s*)|(:\s+)"))
+                 (into {})))
+          (catch java.lang.Throwable e
+            (.printStackTrace e)
+            (throw (Error. (format "Could not load configuration file: %s" config-filename))))))))
 
 (let [+env-local+ ".env.local"]
   (defn dotenv!
     "Create JVM System Properties from environment variables defined in .env{.ENVIRONMENT}.
-   If .env.local exists, load those JVM System Properties too, overriding definitions from .env{.environment}.
+    If .env.local exists, load those JVM System Properties too, overriding definitions from .env{.environment}.
 
-  .env.* file format:
+    .env.* file format:
 
-    foo=1
-    bar='hairy URL'
+      foo=1
+      bar='hairy URL'
 
-  YAML-like format:
+    YAML-like format:
 
-    foo: 1
-    bar: 'hairy URL'
+      foo: 1
+      bar: 'hairy URL'
 
-  For convienence, a BASH Shell format is accepted:
+    For convienence, a BASH Shell format is accepted:
 
-    export foo=1
-    export bar='gnarley URL'
+      export foo=1
+      export bar='gnarley URL'
 
-  Blank lines and all characters after a comment character (#) in all lines are ignored.  
-
-  Takes an optional argument specifying the directory to search for .env file 
-  "
+    Blank lines and all characters after a comment character (#) in all lines are ignored.  
+  
+    Takes an optional argument specifying the directory to search for .env file 
+    "
     ([] (dotenv! (System/getenv "PWD")))
 
     ([dir]
-     (let [filename (make-filename dir)
-           initial  (load-env filename)
-           overide  (if (exists? +env-local+)
-                      (load-env +env-local+)
-                      {})]
-       (doseq [[k v] (merge initial overide)]
-         (set-property! k v))))))
+       (let [filename (make-filename dir)
+             initial  (load-env filename)
+             overide  (if (exists? +env-local+)
+                        (load-env +env-local+)
+                        {})]
+         (doseq [[k v] (merge initial overide)]
+           (set-property! k v))))))

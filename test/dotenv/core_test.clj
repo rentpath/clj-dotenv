@@ -126,6 +126,16 @@
   (let [result (Env "DOTENV_TEST_VAL_72")]
     (is (= result "http://localhost:3000")))))
 
+;;(deftest test-80
+;;  (testing "dotenv, should pass"
+;;  (let [result (Env "DOTENV_TEST_VAL_80")]
+;;    (is (= result "")))))
+
+;;(deftest test-81
+;;  (testing "dotenv, should pass"
+;;  (let [result (Env "DOTENV_TEST_VAL_80")]
+;;    (is (= result nil)))))
+
 (deftest test-make-filename
   (with-redefs [com.rentpath.dotenv.core/get-env (constantly "qa")]
     (is (= (make-filename "foo") "foo/.env.qa")))

@@ -84,10 +84,16 @@
     export bar='gnarley URL'
 
   Blank lines and all characters after a comment character (#) in all lines are ignored.  
+
+  Takes an optional argument specifying the directory to search for .env file 
   "
-  []
-  (let [environ (load-env)]
-    (doseq [[k v] environ] (set-property! k v)))
-    (if (exists? ".env.local")
-      (let [environ-local (load-env ".env.local")]
-        (doseq [[k v] environ-local] (set-property! k v)))))
+    ([] (dotenv! (System/getenv "PWD")))
+
+    ([dir]
+     (let [filename (make-filename dir)
+           initial  (load-env filename)
+           overide  (if (exists? +env-local+)
+                      (load-env +env-local+)
+                      {})]
+       (doseq [[k v] (merge initial overide)]
+         (set-property! k v))))))

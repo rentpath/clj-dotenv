@@ -134,3 +134,8 @@
     (is (= (make-filename) (str (Env "PWD")
                                 (Env "file.separator")
                                 ".env")))))
+
+(deftest optional-dir-for-dotenv
+  (testing "(dotenv!) can be called w/ optional arg for dir to search"
+    (dotenv! (str (System/getenv "PWD") "/test"))
+    (is (= (Env "DOTENV_OPT_ARG") "true"))))

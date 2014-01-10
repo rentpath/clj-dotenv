@@ -91,10 +91,10 @@
     ([] (dotenv! (System/getenv "PWD")))
 
     ([dir]
-       (let [filename (make-filename dir)
-             initial  (load-env filename)
-             overide  (if (exists? +env-local+)
-                        (load-env +env-local+)
-                        {})]
-         (doseq [[k v] (merge initial overide)]
-           (set-property! k v))))))
+     (let [filename (make-filename dir)
+           initial  (load-env filename)
+           overide  (if (exists? +env-local+)
+                      (load-env +env-local+)
+                      {})]
+       (doseq [[k v] (merge initial overide)]
+         (set-property! k v))))))

@@ -2,7 +2,7 @@
 
 ;; Run with "env EVNIRONMENT=test lein test"
 
-;; A .env.test file and a .env.local file must be present.
+;; A .env.test file must be present in this project's root directory.
 
 
 (ns dotenv.core-test
@@ -126,15 +126,15 @@
   (let [result (env "DOTENV_TEST_VAL_72")]
     (is (= result "http://localhost:3000")))))
 
-;;(deftest test-80
-;;  (testing "dotenv, should pass"
-;;  (let [result (env "DOTENV_TEST_VAL_80")]
-;;    (is (= result "")))))
+(deftest test-80
+  (testing "dotenv, should pass"
+  (let [result (env "DOTENV_TEST_VAL_80")]
+    (is (= result "")))))
 
-;;(deftest test-81
-;;  (testing "dotenv, should pass"
-;;  (let [result (env "DOTENV_TEST_VAL_80")]
-;;    (is (= result nil)))))
+(deftest test-81
+  (testing "dotenv, should pass"
+(let [result (env "DOTENV_TEST_VAL_80")]
+    (is (= result nil)))))
 
 (deftest test-make-filename
   (with-redefs [com.rentpath.dotenv.core/get-env (constantly "qa")]

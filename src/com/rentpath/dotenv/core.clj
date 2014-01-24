@@ -5,64 +5,64 @@
 (ns ^{:author "Jack Morrill"
       :doc "Load environment variable definitions from .env{.environment}, .env.local files into the JVM System Properties."}
       com.rentpath.dotenv.core
-      (:require [clojure.java.io :as io    ]
-                [clojure.string  :as string]
-                [me.raynes.fs    :as fs    ]))
+      (:require [clojure.java.io :as io ]
+                [clojure.string  :as str]
+                [me.raynes.fs    :as fs ]
+                [clojure.pprint  :as pp ]))
 
 (def ^{:doc "An environment variable that specifies which environment we're running in."}
   +dot-env-var+
   "ENVIRONMENT")
 
-(def +env-config-files+
-  {"ci"          ".ci"
-   "development" ".development"
-   "test"        ".test"
-   "acceptance"  ".acceptance"
-   "production"  ".production"
-   "qa"          ".qa"
-   "stage"       ".stage"})
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; File handling
 
-(defn exists?
-  "Returns true if file exists and is a regular file, else returns false."
-  [filename]
-  (.isFile (io/file filename)))
+(def +env-base+ ".env")
 
-(defn- get-env
-  [varname]
-  (get (System/getenv) varname))
 
-(defn make-filename
-  ([directory]
-   (let [env (get-env +dot-env-var+)]
-     (->> (str ".env" (.toLowerCase (get +env-config-files+ env "")))
-          (vector directory)
-          (string/join (System/getProperty "file.separator"))
-          (fs/expand-home))))
-  ([]
-   (make-filename (System/getenv "PWD"))))
+(defn- pwd [] (System/getenv "PWD"))
+(defn- env [] (System/getenv +dot-env-var+))
+
+(defn env-filename
+  "returns .env.qa assuming env var named by +dot-env-var+ equals qa
+   returns .env if env var named by +dot-env-var+ equals nil or empty string"
+  []
+  (str +env-base+ (when-not (str/blank? (env))
+                    (str "." (env)))))
 
 (defn set-property!
   [k v]
-  (when (and k v)
-    (System/setProperty k v)))
+  (and k v (System/setProperty k v)))
+
+(defn read-env-file
+  "read environment variable definitions from file into a map."
+  ([^java.io.File file]
+   (when (.isFile file)
+     (try
+       (with-open [rdr (io/reader file)]
+         (->> (line-seq rdr)
+              (map #(str/replace % #"(^export\s+)|([#].*)" ""))
+              (map str/trim)
+              (remove str/blank?)
+              (map #(str/replace % #"[']" "\""))
+              (map #(str/split % #"(\s*=\s*)|(:\s+)"))
+              (map (fn [[k v]]
+                     (case v
+                       "\"\"" [k  ""]
+                       nil    [k nil]
+                       [k (str/replace v #"[\"]" "")])))
+              (into {})))
+       (catch java.lang.Throwable e
+         (.printStackTrace e)
+         (throw (Error. (format "Could not load configuration file: %s" (.getCanonicalPath file)))))))))
 
 (defn load-env
-  "Load environment variable definitions from .env{.ENVIRONMENT} into a map."
   ([]
-   (load-env (make-filename)))
-  ([config-filename]
-   (if (exists? config-filename)
-     (try (with-open [file (io/reader config-filename)]
-            (->> (line-seq file)
-                 (map #(string/replace % #"(^export\s+)|([#].*)" ""))
-                 (map string/trim)
-                 (remove string/blank?)
-                 (map #(string/replace % #"['\"]" ""))
-                 (map #(string/split % #"(\s*=\s*)|(:\s+)"))
-                 (into {})))
-          (catch java.lang.Throwable e
-            (.printStackTrace e)
-            (throw (Error. (format "Could not load configuration file: %s" config-filename))))))))
+   (load-env (io/file (pwd) (env-filename))))
+
+  ([f]
+   (read-env-file f)))
+
 
 (let [+env-local+ ".env.local"]
   (defn dotenv!
@@ -88,13 +88,11 @@
   
     Takes an optional argument specifying the directory to search for .env file 
     "
-    ([] (dotenv! (System/getenv "PWD")))
+    ([] (dotenv! (pwd)))
 
     ([dir]
-     (let [filename (make-filename dir)
-           initial  (load-env filename)
-           overide  (if (exists? +env-local+)
-                      (load-env +env-local+)
-                      {})]
-       (doseq [[k v] (merge initial overide)]
-         (set-property! k v))))))
+       (let [defaults  ((comp load-env io/file) dir (env-filename))
+             override  ((comp load-env io/file) dir +env-local+)
+             app-props (merge {} defaults override)]
+         (doseq [[k v] app-props]
+           (set-property! k v))))))

@@ -18,7 +18,7 @@
     (dotenv!)
     (f)
     ;; reset environ
-        (doseq [[k v] previous-environ] (set-property! k v))))
+    (doseq [[k v] previous-environ] (set-property! k v))))
 (use-fixtures :each environ-fixture)
 
 (deftest test-10
@@ -128,22 +128,23 @@
 
 (deftest test-80
   (testing "dotenv, should pass"
-  (let [result (env "DOTENV_TEST_VAL_80")]
-    (is (= result "")))))
+    (let [result (env "DOTENV_TEST_VAL_80" :allow-nil true)]
+      (is (= result "")))))
 
 (deftest test-81
   (testing "dotenv, should pass"
-(let [result (env "DOTENV_TEST_VAL_80")]
-    (is (= result nil)))))
+    (let [result (env "DOTENV_TEST_VAL_81" :allow-nil true)]
+      (is (= result nil)))))
 
-(deftest test-make-filename
-  (with-redefs [com.rentpath.dotenv.core/get-env (constantly "qa")]
-    (is (= (make-filename "foo") "foo/.env.qa")))
-  (with-redefs [com.rentpath.dotenv.core/get-env (constantly nil)]
-    (is (= (make-filename "foo") "foo/.env"))
-    (is (= (make-filename) (str (env "PWD")
-                                (env "file.separator")
-                                ".env")))))
+;;;; #'com.rentpath.dotenv.core/make-filename <-- No Longer Exists ;;;;;;;;;;
+;; (deftest test-make-filename
+;;   (with-redefs [com.rentpath.dotenv.core/get-env (constantly "qa")]
+;;     (is (= (make-filename "foo") "foo/.env.qa")))
+;;   (with-redefs [com.rentpath.dotenv.core/get-env (constantly nil)]
+;;     (is (= (make-filename "foo") "foo/.env"))
+;;     (is (= (make-filename) (str (env "PWD")
+;;                                 (env "file.separator")
+;;                                 ".env")))))
 
 (deftest optional-dir-for-dotenv
   (testing "(dotenv!) can be called w/ optional arg for dir to search"

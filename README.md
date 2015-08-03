@@ -1,4 +1,4 @@
-# dotenv
+# dotenv [DEPRECATED]
 
 ### A Clojure library designed to impliment the functionality of the dotenv RubyGem on the JVM.
 
